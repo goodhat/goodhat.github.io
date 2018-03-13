@@ -1,0 +1,66 @@
+<!DOCTYPE html><html lang="zh-TW.yml"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Goodhat's notes"><title>機器學習技法 Lecture 1 | Goodhat's Playground</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/7.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">機器學習技法 Lecture 1</h1><a id="logo" href="/.">Goodhat's Playground</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首頁</i></a><a href="/archives/"><i class="fa fa-archive"> 所有文章</i></a><a href="/about/"><i class="fa fa-user"> 關於</i></a><a href="/atom.xml"><i class="fa fa-rss"> 訂閱</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">機器學習技法 Lecture 1</h1><div class="post-meta">Jan 19, 2018<span> | </span><span class="category"><a href="/categories/機器學習技法/">機器學習技法</a></span></div><a class="disqus-comment-count" data-disqus-identifier="2018/01/19/MLTechnique1/" href="/2018/01/19/MLTechnique1/#disqus_thread"></a><div class="post-content"><p><em>Support Vector Machine</em><br>把margin的概念加入，形成SVM。</p>
+<a id="more"></a>
+<p>大三上修完<a href="https://www.youtube.com/watch?v=nQvpFSMPhr0&amp;list=PLXVfgk9fNX2I7tB6oIINGBmW50rrmFTqf" target="_blank" rel="noopener">機器學習基石</a>，下學期預計要修<a href="https://www.youtube.com/watch?v=A-GxGCCAIrg&amp;list=PLXVfgk9fNX2IQOYPmqjqWsNUFl2kpk1U2" target="_blank" rel="noopener">機器學習技法</a>。想說藉著寒假一個月的時間先把影片預習一遍，然後把筆記放在這裡。</p>
+<hr>
+<h3 id="技法三個主要重點（圍繞在feature-transform"><a href="#技法三個主要重點（圍繞在feature-transform" class="headerlink" title="技法三個主要重點（圍繞在feature transform)"></a>技法三個主要重點（圍繞在feature transform)</h3><ol>
+<li>很多特徵轉換，怎麼辦？ （inspires SVM）</li>
+<li>如何找出有預測性質的特徵並結合？ （Adaptive Boosting）</li>
+<li>資料有隱藏特徵，怎麼學出來？ （inspires Deep Learning）</li>
+</ol>
+<hr>
+<h3 id="第1講的主題是SVM（Support-Vector-Machine"><a href="#第1講的主題是SVM（Support-Vector-Machine" class="headerlink" title="第1講的主題是SVM（Support Vector Machine)"></a>第1講的主題是SVM（Support Vector Machine)</h3><p>SVM有個特點：<em>VC dimension會比一般的PLA還要低，因此generalize的效果會比較好，複雜度也比較低</em>。SVM的VC dimension決定於<em>資料的分佈</em>以及<em>margin的大小</em>，這在下面的筆記會談到。</p>
+<p>在基石的課程中，我們學過PLA，它能根據錯誤修正，直到最後得到完美的分隔線（如果存在的話）。<br>但如果看以下例子：<br><img src="/2018/01/19/MLTechnique1/1.png"><br>雖然三條線都完美的分開所有的點，但以直覺來講，右邊的線似乎更好，更能<em>容忍noise</em>。<br><em>SVM就是帶入這個想法，試著找出margin較大的分類方式。</em></p>
+<hr>
+<h3 id="數學推導"><a href="#數學推導" class="headerlink" title="數學推導"></a>數學推導</h3><p>接下來的過程，是怎麼將上面的想法，一步步化簡成可以計算的數學式：</p>
+<ul>
+<li><p>一開始是最直覺的，想找出有最大margin的分類法，而margin由最靠近的點到邊界的距離決定。</p>
+<img src="/2018/01/19/MLTechnique1/2.png">
+</li>
+<li><p>能完美分隔的hypothesis會滿足 \(y_n w^T x_n &gt; 0\)</p>
+<img src="/2018/01/19/MLTechnique1/3.png">
+</li>
+<li><p>找出distance的計算方式。這裡的w和x已經沒有多加的bias，轉移到b。其實高中就有學過，二維空間點到線的距離、三維空間點到平面的距離，與這個距離公式有所呼應。</p>
+<img src="/2018/01/19/MLTechnique1/4.png">
+</li>
+<li><p>再進一步簡化，由於w b是可以放縮的，因此我們可以將最小的disance固定為1。而最大的margin就會固定為w長度的倒數。</p>
+<img src="/2018/01/19/MLTechnique1/5.png">
+</li>
+<li><p>最後，將最小distance = 1的限制放鬆成所有distance &gt;= 1，這不影響結果，因為如果最小distance &gt; 1，那麼就能藉由放縮找到更小的w，也就能使w的倒數更大。最後再加上一些係數，max -&gt; min，就得到最終的結果。</p>
+<img src="/2018/01/19/MLTechnique1/6.png">
+</li>
+</ul>
+<hr>
+<h3 id="有了化簡後的式子後，怎麼解呢？"><a href="#有了化簡後的式子後，怎麼解呢？" class="headerlink" title="有了化簡後的式子後，怎麼解呢？"></a>有了化簡後的式子後，怎麼解呢？</h3><p>其實這是一個已經有現成solver的問題，叫作<em>Quadratic Programming</em>。<br>這裡我就不特別寫了，反正就是把我們的問題寫成QP問題的形式，然後用solver解。</p>
+<hr>
+<h3 id="SVM的意義"><a href="#SVM的意義" class="headerlink" title="SVM的意義"></a>SVM的意義</h3><p>在基石有學過限制w的長度，可以達到regularization的效果。而SVM異曲同工，卻又不一樣。<br><img src="/2018/01/19/MLTechnique1/7.png"></p>
+<p>還有一點非常重要，也是SVM的優勢：<em>SVM hypothesis的複雜度會比較小</em>。有了margin的限制，會導致原本能shatter的資料變成不能shatter。因此，VC dimension會受到<em>資料分佈</em>，還有<em>邊界大小</em>影響。課程中老師有給數學式子，但並沒有推導。</p>
+<p>最後，之前提過的特徵轉換會使複雜度變高，而SVM就是希望可以轉換成non-linear SVM後，依然能夠保留複雜度低的特性。下一節的主題就是non-linear SVM。</p>
+</div><div class="tags"><a href="/tags/MLTechnique/">MLTechnique</a><a href="/tags/learning/">learning</a></div><div class="post-nav"><a class="pre" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a><a class="next" href="/2018/01/19/first-post/">第一篇文</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论 「请确保 disqus.com 可以正常加载」</button></div><script>var disqus_shortname = 'goodhat';
+var disqus_identifier = '2018/01/19/MLTechnique1/';
+var disqus_title = '機器學習技法 Lecture 1';
+var disqus_url = 'http://goodhat.com/2018/01/19/MLTechnique1/';
+$('.btn_click_load').click(function() {
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+  $('.btn_click_load').css('display','none');
+});
+$.ajax({
+  url: 'https://disqus.com/next/config.json',
+  timeout: 3000,
+  type: 'GET',
+  success: (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    $('.btn_click_load').css('display','none');
+  })(),
+  error: function() {
+    $('.btn_click_load').css('display','block');
+  }
+});</script><script id="dsq-count-scr" src="//goodhat.disqus.com/count.js" async></script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://goodhat.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/機器學習技法/">機器學習技法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"><a href="/tags/MLTechnique/" style="font-size: 15px;">MLTechnique</a> <a href="/tags/learning/" style="font-size: 15px;">learning</a> <a href="/tags/雜記/" style="font-size: 15px;">雜記</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/29/MLTechnique5/">機器學習技法 Lecture 5</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique3/">機器學習技法 Lecture 3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/MLTechnique1/">機器學習技法 Lecture 1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/first-post/">第一篇文</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> 最近評論</i></div><script type="text/javascript" src="//goodhat.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">Goodhat's Playground.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.css"><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+  });
+</script><script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

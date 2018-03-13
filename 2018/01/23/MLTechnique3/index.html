@@ -1,0 +1,57 @@
+<!DOCTYPE html><html lang="zh-TW.yml"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Goodhat's notes"><title>機器學習技法 Lecture 3 | Goodhat's Playground</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/7.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">機器學習技法 Lecture 3</h1><a id="logo" href="/.">Goodhat's Playground</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首頁</i></a><a href="/archives/"><i class="fa fa-archive"> 所有文章</i></a><a href="/about/"><i class="fa fa-user"> 關於</i></a><a href="/atom.xml"><i class="fa fa-rss"> 訂閱</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">機器學習技法 Lecture 3</h1><div class="post-meta">Jan 23, 2018<span> | </span><span class="category"><a href="/categories/機器學習技法/">機器學習技法</a></span></div><a class="disqus-comment-count" data-disqus-identifier="2018/01/23/MLTechnique3/" href="/2018/01/23/MLTechnique3/#disqus_thread"></a><div class="post-content"><p><em>Kernel Support Vector Machine</em><br>講解如何用kernel將feature transform更有效率的做好。</p>
+<a id="more"></a>
+<hr>
+<h3 id="從feature-transform到kernel-function"><a href="#從feature-transform到kernel-function" class="headerlink" title="從feature transform到kernel function"></a>從feature transform到kernel function</h3><p>做了二維轉換後，擁有的feature向量變\((1,x_1,x_2,…,x_d,x_1^2,x_1x_2,…,x_d^2)\)<br>在dual SVM裡要算的是兩個向量的內積，拆開來發現可以用原始向量來表現<br><img src="/2018/01/23/MLTechnique3/1.png"><br>因此，我們就能把transform變成用kernel function表示，這裡用二維轉換當例子。<br><img src="/2018/01/23/MLTechnique3/2.png"></p>
+<p>有了kernel function，我們回去找第2章哪裡可以簡化。</p>
+<ul>
+<li>QP裡Q矩陣的元素（這是最直覺的，上一章就是提到這裡維度依然很大）<img src="/2018/01/23/MLTechnique3/3.png"></li>
+<li>計算b時，看似無法用kernel，但其實把w展開也是可以用。<img src="/2018/01/23/MLTechnique3/4.png"></li>
+<li>計算hypothesis也能用<img src="/2018/01/23/MLTechnique3/5.png">
+</li>
+</ul>
+<p>到這裡，我們已經把kernel發揮到極致，只要用原始的維度就能計算高維。</p>
+<hr>
+<h3 id="將kernel加入參數，讓我們可以操作kernel。"><a href="#將kernel加入參數，讓我們可以操作kernel。" class="headerlink" title="將kernel加入參數，讓我們可以操作kernel。"></a>將kernel加入參數，讓我們可以操作kernel。</h3><p>首先，把上面的kernel加上一些係數，整理成比較好算的樣子，下面以二維當例子。<br><img src="/2018/01/23/MLTechnique3/6.png"><img src="/2018/01/23/MLTechnique3/7.png"><br>這裡我們就多了gamma可以調整。雖然都是二次轉換，<em>hypothesis的power是一樣的，但不同的gamma代表不同的幾何意義</em>，因此得到的結果會不一樣。（老實說，我不太能理解這部份，因為即使加了gamma，算出來的w只要放縮，就能算出一樣的結果阿…我還在理解這部份，目前給自己的解釋是，可能再算最佳化的過程中（例如QP），並沒有辦法算出真正最好的答案，而是近似值）。<br><img src="/2018/01/23/MLTechnique3/8.png"></p>
+<hr>
+<h3 id="更多的kernel"><a href="#更多的kernel" class="headerlink" title="更多的kernel"></a>更多的kernel</h3><p>更方便的地方來了，想做更高維的轉換不需要把高維向量展開，只要用kernel就好。<br><img src="/2018/01/23/MLTechnique3/9.png"></p>
+<hr>
+<h3 id="無限維的kernel"><a href="#無限維的kernel" class="headerlink" title="無限維的kernel"></a>無限維的kernel</h3><p>既然只要用kernel就可以做到高維轉換，那能不能到無限多維呢？答案是yes！<img src="/2018/01/23/MLTechnique3/10.png">用泰勒展開式，這個kernel代表下面向量的內積<img src="/2018/01/23/MLTechnique3/11.png"><br>這是Gaussian kernel，也叫作Radial Basis Function(RBF) kernel。這個kernel等於是將以N個資料點為中心的N個高斯分佈，乘上alpha的線性組合。（個人覺得這邊好抽象…其實有點不太懂到底做了什麼，只知道無限多維的轉換一定很powerful）<img src="/2018/01/23/MLTechnique3/12.png">這張圖很神奇，當係數愈大，高斯分佈就愈尖，而這個kernel會愈接近「非0即1」的函數，就變成右邊那種極端的樣子了。</p>
+<hr>
+<h3 id="整理目前所學的技巧，以及它們的優缺。"><a href="#整理目前所學的技巧，以及它們的優缺。" class="headerlink" title="整理目前所學的技巧，以及它們的優缺。"></a>整理目前所學的技巧，以及它們的優缺。</h3><ul>
+<li>linear kernel：<img src="/2018/01/23/MLTechnique3/13.png">簡單、基本，所有的嘗試儘量從linear開始，不要一開始就做太複雜的。因為linear簡單，所以或許不需要用kernel，用最簡單的SVM就好了。</li>
+<li>polynomail kernel：<img src="/2018/01/23/MLTechnique3/14.png">比較複雜，但也比較powerful，但多了比較多參數要調整，而且到高維，數字可能會變形（太大或太小）。低維時不需要用kernel，直接用dual SVM可能還比較快。</li>
+<li>Gaussian kernel：<img src="/2018/01/23/MLTechnique3/15.png">很強大，只有一個參數（好調整），但神奇的是沒有w，算的很慢。</li>
+</ul>
+<hr>
+<h3 id="怎麼創一個valid-kernel？"><a href="#怎麼創一個valid-kernel？" class="headerlink" title="怎麼創一個valid kernel？"></a>怎麼創一個valid kernel？</h3><p>充份必要的條件Mercer’s condition：<img src="/2018/01/23/MLTechnique3/16.png"></p>
+<hr>
+<p>這章節的概念很好理解，就是把特徵轉換的成本用kernel消除。較難理解的是幾何意義，還有高斯kernel。</p>
+</div><div class="tags"><a href="/tags/MLTechnique/">MLTechnique</a><a href="/tags/learning/">learning</a></div><div class="post-nav"><a class="pre" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a><a class="next" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论 「请确保 disqus.com 可以正常加载」</button></div><script>var disqus_shortname = 'goodhat';
+var disqus_identifier = '2018/01/23/MLTechnique3/';
+var disqus_title = '機器學習技法 Lecture 3';
+var disqus_url = 'http://goodhat.com/2018/01/23/MLTechnique3/';
+$('.btn_click_load').click(function() {
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+  $('.btn_click_load').css('display','none');
+});
+$.ajax({
+  url: 'https://disqus.com/next/config.json',
+  timeout: 3000,
+  type: 'GET',
+  success: (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    $('.btn_click_load').css('display','none');
+  })(),
+  error: function() {
+    $('.btn_click_load').css('display','block');
+  }
+});</script><script id="dsq-count-scr" src="//goodhat.disqus.com/count.js" async></script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://goodhat.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/機器學習技法/">機器學習技法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"><a href="/tags/MLTechnique/" style="font-size: 15px;">MLTechnique</a> <a href="/tags/learning/" style="font-size: 15px;">learning</a> <a href="/tags/雜記/" style="font-size: 15px;">雜記</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/29/MLTechnique5/">機器學習技法 Lecture 5</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique3/">機器學習技法 Lecture 3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/MLTechnique1/">機器學習技法 Lecture 1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/first-post/">第一篇文</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> 最近評論</i></div><script type="text/javascript" src="//goodhat.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">Goodhat's Playground.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.css"><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+  });
+</script><script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

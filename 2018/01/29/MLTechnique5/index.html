@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="zh-TW.yml"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Goodhat's notes"><title>機器學習技法 Lecture 5 | Goodhat's Playground</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/7.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">機器學習技法 Lecture 5</h1><a id="logo" href="/.">Goodhat's Playground</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首頁</i></a><a href="/archives/"><i class="fa fa-archive"> 所有文章</i></a><a href="/about/"><i class="fa fa-user"> 關於</i></a><a href="/atom.xml"><i class="fa fa-rss"> 訂閱</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">機器學習技法 Lecture 5</h1><div class="post-meta">Jan 29, 2018<span> | </span><span class="category"><a href="/categories/機器學習技法/">機器學習技法</a></span></div><a class="disqus-comment-count" data-disqus-identifier="2018/01/29/MLTechnique5/" href="/2018/01/29/MLTechnique5/#disqus_thread"></a><div class="post-content"><p><em>Kernel Logistic Regression</em><br>用kernel SVM的方法解logistic regression。</p>
+<a id="more"></a>
+<hr>
+<h3 id="Soft-SVM與Regularization的比較"><a href="#Soft-SVM與Regularization的比較" class="headerlink" title="Soft SVM與Regularization的比較"></a>Soft SVM與Regularization的比較</h3><p>Soft SVM加上的ksi代表資料點犯的錯，沒犯錯的話就是0。因此，我們可以不理原本soft SVM的constraints，把式子變成：<img src="/2018/01/29/MLTechnique5/1.png"><br>變成這樣有什麼好處呢？我們回想在基石中學過的regularization，兩者都是在原本要minimize的值中，再加入另一種err。既然兩者很相像，那我們是不是直接在SVM用regularzie的方式求解就好了呢？答案是，沒這麼單純，新的形式不僅不是QP問題，也不能微分。下面會提到，如何將兩者真正的結合在一起（算結合嗎？）。</p>
+<p>在介紹hard SVM時，就有介紹過它跟regularization的關係，兩者的目標跟constraints剛好相反。將兩個的constraints轉換一下加入目標式，就變成L2 regularization和soft SVM，看起來就跟上面所述，兩者很相像。<img src="/2018/01/29/MLTechnique5/2.png"></p>
+<hr>
+<h3 id="Error-Measure"><a href="#Error-Measure" class="headerlink" title="Error Measure"></a>Error Measure</h3><p>下圖是0/1 error和SVM error的比較<img src="/2018/01/29/MLTechnique5/3.png">可以看出SVM error是0/1 error的上限，還是凸的上限(在最佳化有好的性質可以用)。因此，做好SVM某種意義上也算是間接的做好0/1(我們稱為hinge error measure)。</p>
+<p>再回憶logistic regression的error，也是0/1的上限。而SVM與logistic regression的error看起來其實有點相似，照老師的說法，兩者當ys為無限大及負無限大時相等。因此，我們可以說SVM好像就是在做L2-regularized logistic regression。<img src="/2018/01/29/MLTechnique5/4.png"></p>
+<hr>
+<h3 id="三種演算法的比較"><a href="#三種演算法的比較" class="headerlink" title="三種演算法的比較"></a>三種演算法的比較</h3><p>下圖是老師的投影片中，對已經提過的三種演算法做比較<img src="/2018/01/29/MLTechnique5/5.png"></p>
+<ul>
+<li><em>PLA</em>：用0/1 error。lin.separable時會很有效率，但若不是，可能就要用pocket，會變得很難做。</li>
+<li><em>Soft-Margin SVM</em>：用SVM error，是0/1 error的上限。用QP求最佳化，簡單且有margin保護。</li>
+<li><em>regularized LogReg</em>：用在基石提過的error，scale後是0/1 的上限。用SGD求最佳化，簡單且有regularization保護。<br>現在，我們知道SVM跟regularized真的很像，那我們能不能藉由算SVM來求regularized LogReg呢？</li>
+</ul>
+<hr>
+<h3 id="用SVM做binary-classifiation"><a href="#用SVM做binary-classifiation" class="headerlink" title="用SVM做binary classifiation"></a>用SVM做binary classifiation</h3><p>以下有幾種naive的方法：</p>
+<ul>
+<li>直接把SVM算出來的值，丟進activation function，就能得到一個機率。此方法簡單，但會失去LogReg推導時，擁有maximun likelihood的性質。</li>
+<li>用SVM算出w b，再將結果當作LogReg的起始點，算SGD。因為通常這種問題的函數都是凸的，用此方法有種畫蛇添足、多此一舉的感覺。</li>
+</ul>
+<p>比較好的方式如下：<img src="/2018/01/29/MLTechnique5/6.png">這個方法只是稍微放縮跟微調，A通常要大於0，不然SVM根本就做錯了，而B要趨近於0。新的問題會變成：<img src="/2018/01/29/MLTechnique5/7.png">變成單純兩個變數，可以用很簡單的方式求最佳化。<br>以上Platt提出的model（簡化過的），步驟如下：</p>
+<ul>
+<li>用SVM求出w b，將資料點用結果重算，視為一個轉換。</li>
+<li>用LogReg算出A和B</li>
+<li>那個g(x)就等於最終算出的值，再放入activation function。</li>
+</ul>
+<p>這是用kernel SVM來讓LogReg也可以用到kernel的好處，但這只是approximate，下面講如何真正的算出特徵轉換過的LogReg。</p>
+<hr>
+<h3 id="真正算出Kernel-LogReg"><a href="#真正算出Kernel-LogReg" class="headerlink" title="真正算出Kernel LogReg"></a>真正算出Kernel LogReg</h3><p>能夠使用kernel的關鍵在於，w要能夠表示成z的線性組合，這樣才有z的內積（kernel真正作用的地方）。那麼regularized LogReg算出來的w可以表示成z的線性組合嗎？答案：可以的。證明如下：<img src="/2018/01/29/MLTechnique5/8.png"> 概念很好理解，簡單講就是如果w有z不能表現出來的部份，那麼就能找到比該w還要好的解。</p>
+<p>既然w一定是z的線性組合<img src="/2018/01/29/MLTechnique5/9.png">那我們就能用kernel把式子轉化成下面的樣子<img src="/2018/01/29/MLTechnique5/10.png">這個式子變成單純解beta的最佳化問題了！</p>
+<hr>
+<h3 id="回顧Kernel-Logistic-Regression-KLR"><a href="#回顧Kernel-Logistic-Regression-KLR" class="headerlink" title="回顧Kernel Logistic Regression(KLR)"></a>回顧Kernel Logistic Regression(KLR)</h3><p>從最後導出來的式子，可以看成只是<em>將資料點經過轉換</em>（kernel）後，跟beta的相似程度。另外，beta自己內積後在乘上kernel matrix可以視為regularizer。</p>
+<p>因此，KLR可以看成兩種意義：</p>
+<ul>
+<li>推導後的意義，beta的線性模型，加上了kernel transform和kernel regularizer。</li>
+<li>推導前的意義，w的線性模型，加上L2 regularizer，並用kernel來簡化。</li>
+</ul>
+<p>這跟SVM經過dual轉換後變成計算alpha非常像，只不過SVM alpha大多是0，而KLR的beta大多不是0。</p>
+<hr>
+<p><em>KLR成功的將kernel的好處加到regularized LogReg！</em></p>
+<p>前面講了很多SVM和LogReg的比較，但最後真正的方法感覺跟前面沒什麼關係，老師大概是希望學生能有宏觀概念的了解吧！這章對我來說有點難懂，突然跳回到以前講過的東西，然後用新的知識讓原本的東西更好算。所以SVM到底跟LogReg為什麼會這麼相似，我還是沒辦法完全了解，只知道僅僅才上聽五堂課，就體會到，一個問題可以用好多不同的方式表現，各有優缺，可以互補。接下來還有11堂課，後面到底還有如何精妙的知識，想到就覺得數據學家真的好厲害，既佩服又覺得無力啊…</p>
+</div><div class="tags"><a href="/tags/MLTechnique/">MLTechnique</a><a href="/tags/learning/">learning</a></div><div class="post-nav"><a class="pre" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a><a class="next" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论 「请确保 disqus.com 可以正常加载」</button></div><script>var disqus_shortname = 'goodhat';
+var disqus_identifier = '2018/01/29/MLTechnique5/';
+var disqus_title = '機器學習技法 Lecture 5';
+var disqus_url = 'http://goodhat.com/2018/01/29/MLTechnique5/';
+$('.btn_click_load').click(function() {
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+  $('.btn_click_load').css('display','none');
+});
+$.ajax({
+  url: 'https://disqus.com/next/config.json',
+  timeout: 3000,
+  type: 'GET',
+  success: (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    $('.btn_click_load').css('display','none');
+  })(),
+  error: function() {
+    $('.btn_click_load').css('display','block');
+  }
+});</script><script id="dsq-count-scr" src="//goodhat.disqus.com/count.js" async></script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://goodhat.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/機器學習技法/">機器學習技法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"><a href="/tags/MLTechnique/" style="font-size: 15px;">MLTechnique</a> <a href="/tags/learning/" style="font-size: 15px;">learning</a> <a href="/tags/雜記/" style="font-size: 15px;">雜記</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/29/MLTechnique5/">機器學習技法 Lecture 5</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique3/">機器學習技法 Lecture 3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/MLTechnique1/">機器學習技法 Lecture 1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/first-post/">第一篇文</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> 最近評論</i></div><script type="text/javascript" src="//goodhat.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">Goodhat's Playground.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.css"><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+  });
+</script><script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>

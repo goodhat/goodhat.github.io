@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="zh-TW.yml"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Goodhat's notes"><title>機器學習技法 Lecture 4 | Goodhat's Playground</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/7.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">機器學習技法 Lecture 4</h1><a id="logo" href="/.">Goodhat's Playground</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首頁</i></a><a href="/archives/"><i class="fa fa-archive"> 所有文章</i></a><a href="/about/"><i class="fa fa-user"> 關於</i></a><a href="/atom.xml"><i class="fa fa-rss"> 訂閱</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">機器學習技法 Lecture 4</h1><div class="post-meta">Jan 26, 2018<span> | </span><span class="category"><a href="/categories/機器學習技法/">機器學習技法</a></span></div><a class="disqus-comment-count" data-disqus-identifier="2018/01/26/MLTechnique4/" href="/2018/01/26/MLTechnique4/#disqus_thread"></a><div class="post-content"><p><em>Soft-Margin Support Vector Machine</em><br>能夠犯錯的SVM。</p>
+<a id="more"></a>
+<hr>
+<p>前幾章講的SVM都不能犯錯，稱為Hard-Margin SVM。這大部分的資料是不存在可以完美分開的平面的。因此，我們需要一個能夠容忍錯誤的hypothesis。（原本以為從hard變soft會很麻煩，沒想到其實蠻簡單的。）</p>
+<hr>
+<h3 id="加入「到邊界距離」的觀念"><a href="#加入「到邊界距離」的觀念" class="headerlink" title="加入「到邊界距離」的觀念"></a>加入「到邊界距離」的觀念</h3><p>首先，把「錯誤」加入要minimize的式子：<img src="/2018/01/26/MLTechnique4/1.png"><em>C是控制「錯誤容忍度」的係數</em>，C愈大，容忍度愈低。而原本SVM的constraints只需要「對的點」滿足就好。</p>
+<p>上面的式子有個壞處，它變成不能微分，也就無法用QP解。怎麼辦呢？我們觀察到，犯錯的點也有分錯大錯小。因此，比較好的minimize目標應該是<em>整體的錯誤程度</em>，我們用新的符號表式，念作ksi。（到後面會發現神奇的物理意義，我自己覺得神奇啦）<img src="/2018/01/26/MLTechnique4/2.png">現在，我們已經把式子改成可容忍錯誤，ksi代表的就是該資料點的margin violation。</p>
+<hr>
+<h3 id="改成dual的形式"><a href="#改成dual的形式" class="headerlink" title="改成dual的形式"></a>改成dual的形式</h3><p>這裡就跟對偶SVM那章很像，加入lagrange multipliers以消除constraints。<br><img src="/2018/01/26/MLTechnique4/3.png">在第2章，接下來的步驟是對w b取偏微分，但這裡我們<em>先對ksi取偏微分</em>，可以得到alpha和beta跟C的關係，而且ksi還能從消掉。<img src="/2018/01/26/MLTechnique4/4.png"></p>
+<p>再來就是dual inner problem，跟第2章一樣，對w b偏微，得到一模一樣的條件。最後變成下面的式子，可以發現唯一的差別在於，<em>alpha會被C限制</em>。<img src="/2018/01/26/MLTechnique4/5.png">這就是一個QP問題了，只是constraints變多，有2N+1個。</p>
+<hr>
+<h3 id="加入kernel"><a href="#加入kernel" class="headerlink" title="加入kernel"></a>加入kernel</h3><p>沒什麼難度，跟第三章一樣。</p>
+<hr>
+<h3 id="計算b"><a href="#計算b" class="headerlink" title="計算b"></a>計算b</h3><p>用QP算出alpha後，我們就能輕易的算出w，但是b就不一樣了。之前的SVM是用complementary slackness算出來的，soft-margin也是一樣的概念，但多了一點變化。<img src="/2018/01/26/MLTechnique4/6.png">這裡有兩個找出b的可能：</p>
+<ul>
+<li>alpha &gt; 0，代表support vector <img src="/2018/01/26/MLTechnique4/7.png"></li>
+<li>alpha &lt; C，代表free support vector <img src="/2018/01/26/MLTechnique4/8.png"></li>
+</ul>
+<p>找到free SV就能算出b（如果沒有的話，只能找出b的上下限）。</p>
+<hr>
+<h3 id="Soft-SVM的幾何意義"><a href="#Soft-SVM的幾何意義" class="headerlink" title="Soft SVM的幾何意義"></a>Soft SVM的幾何意義</h3><p>C愈大，代表愈不能容忍錯誤，所以會愈複雜。下圖是用了gaussian kernel的SVM，可以看出當C太大時，仍然會overfit。<img src="/2018/01/26/MLTechnique4/9.png"></p>
+<p>資料點可以依alpha beta ksi，在空間中（幾何意義）分成三類：</p>
+<ul>
+<li>非SV：alpha=0,ksi=0。這種點沒有犯錯，也不在邊界上。</li>
+<li>free SV：0&lt;alpha&lt;C，ksi=0。這種點是SV，且在邊界上。</li>
+<li>bounded SV：alpha=C，ksi=犯錯的大小。這種點就是違反邊界的點。</li>
+</ul>
+<hr>
+<h3 id="怎麼選擇model？"><a href="#怎麼選擇model？" class="headerlink" title="怎麼選擇model？"></a>怎麼選擇model？</h3><p>將Gaussian kernel加上C後，可以降低overfit，但也因為參數變成C跟gamma，要調整的難度也變高。怎麼選擇呢？就是用<em>cross validation</em>。</p>
+<p>這裡有一個特別的上下限關係，leave one out cross validation的error一定會小於SV的比例：<img src="/2018/01/26/MLTechnique4/10.png">證明的概念在於：<br>如果拿掉的拿點不是SV，那麼對於model一點影響也沒有，而且那個點一定不會犯錯。<br>如果拿掉的點是SV，model可能就變了，而那個點可能本來就是犯錯的點，model變了依然可能犯錯。<br>所以整體犯錯的比例會小於等於SV的比例。</p>
+<p>因此，我們除了用cross validation選擇model外，也可以<em>用SV的數量來檢查</em>。然而，這只是一個上下限的關係，並不一定能夠選出一個最好的model。</p>
+<hr>
+<h3 id="小總結"><a href="#小總結" class="headerlink" title="小總結"></a>小總結</h3><p>其實加上犯錯容忍度比想像中的簡單，不同的地方也沒有很多：</p>
+<ul>
+<li>在原本hard的alpha加上一個上限</li>
+<li>從alpha推回b的方法</li>
+<li>資料點相對平面關係的種類（bounde SV、free SV、non SV）</li>
+</ul>
+</div><div class="tags"><a href="/tags/MLTechnique/">MLTechnique</a><a href="/tags/learning/">learning</a></div><div class="post-nav"><a class="pre" href="/2018/01/29/MLTechnique5/">機器學習技法 Lecture 5</a><a class="next" href="/2018/01/23/MLTechnique3/">機器學習技法 Lecture 3</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论 「请确保 disqus.com 可以正常加载」</button></div><script>var disqus_shortname = 'goodhat';
+var disqus_identifier = '2018/01/26/MLTechnique4/';
+var disqus_title = '機器學習技法 Lecture 4';
+var disqus_url = 'http://goodhat.com/2018/01/26/MLTechnique4/';
+$('.btn_click_load').click(function() {
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+  $('.btn_click_load').css('display','none');
+});
+$.ajax({
+  url: 'https://disqus.com/next/config.json',
+  timeout: 3000,
+  type: 'GET',
+  success: (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    $('.btn_click_load').css('display','none');
+  })(),
+  error: function() {
+    $('.btn_click_load').css('display','block');
+  }
+});</script><script id="dsq-count-scr" src="//goodhat.disqus.com/count.js" async></script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://goodhat.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/機器學習技法/">機器學習技法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"><a href="/tags/MLTechnique/" style="font-size: 15px;">MLTechnique</a> <a href="/tags/learning/" style="font-size: 15px;">learning</a> <a href="/tags/雜記/" style="font-size: 15px;">雜記</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/29/MLTechnique5/">機器學習技法 Lecture 5</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique3/">機器學習技法 Lecture 3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/MLTechnique1/">機器學習技法 Lecture 1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/first-post/">第一篇文</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> 最近評論</i></div><script type="text/javascript" src="//goodhat.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">Goodhat's Playground.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.css"><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+  });
+</script><script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
