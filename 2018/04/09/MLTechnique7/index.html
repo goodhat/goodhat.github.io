@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="zh-TW.yml"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Goodhat's notes"><title>MLTechnique7 | Goodhat's Playground</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/7.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">MLTechnique7</h1><a id="logo" href="/.">Goodhat's Playground</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首頁</i></a><a href="/archives/"><i class="fa fa-archive"> 所有文章</i></a><a href="/about/"><i class="fa fa-user"> 關於</i></a><a href="/atom.xml"><i class="fa fa-rss"> 訂閱</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">MLTechnique7</h1><div class="post-meta">Apr 9, 2018<span> | </span><span class="category"><a href="/categories/機器學習技法/">機器學習技法</a></span></div><a class="disqus-comment-count" data-disqus-identifier="2018/04/09/MLTechnique7/" href="/2018/04/09/MLTechnique7/#disqus_thread"></a><div class="post-content"><p><em>Blending and Bagging</em><br>有很多個hypothesis，如何合併？ Aggregation model<br><a id="more"></a></p>
+<hr>
+<h3 id="從簡單的概念切入"><a href="#從簡單的概念切入" class="headerlink" title="從簡單的概念切入"></a>從簡單的概念切入</h3><p>如果有一個情況是，你有很多個還不錯的hypothesis，有沒有可能把他們合成一個更強的hypothesis呢？<br>老師用投票的意義去解釋，你可以：</p>
+<ul>
+<li>選最好的</li>
+<li>平均選（每個hypothesis選票等值）</li>
+<li>不平均的選（每個hypothesis選票不等值）</li>
+<li>有條件的選（在不同條件下，每個hypothesis的選票會不一樣）</li>
+</ul>
+<p>那怎麼知道aggregation真的會有用呢？<img src="/2018/04/09/MLTechnique7/1.png"><br>左邊代表，你有很多個不是那麼好的hypothesis，透過投票，他們就可以形成彎曲的界線，甚至達到feature transform的感覺？<br>右邊代表，你有很多個hypothesis，如果用PLA選的話，每一個都有可能被選到，但如果平均起來，得到的結果會比較好。有regularization的效果？</p>
+<hr>
+<h3 id="Classification-versus-Regression"><a href="#Classification-versus-Regression" class="headerlink" title="Classification versus Regression"></a>Classification versus Regression</h3><p>如果要做分類的話，那blending的方式是加總每一個hypothesis的結果。（多數決）<br>如果要做回歸的話，那blending的方式是每一個hypothesis結果的平均。（平均比單一好）</p>
+<hr>
+<h3 id="用數學推論blending的好處"><a href="#用數學推論blending的好處" class="headerlink" title="用數學推論blending的好處"></a>用數學推論blending的好處</h3><img src="/2018/04/09/MLTechnique7/2.png">
+<p>從上面的推論可以看出，<em>所有單一hypothesis error的平均</em> 會比 <em>平均起來的hypothesis的 error</em> 還要大，代表平均過後真的會比較好。</p>
+<p>從統計的角度切入，假設G是從無限多個g合起來的，那他們error有下面的統計關係。</p>
+<ul>
+<li>無限多個g error的平均：演算法A的期望值</li>
+<li>G(下面是g上面一槓) error：g的共同意見(bias)</li>
+<li>最後一項（不知道怎麼稱呼）：g之間的意見歧異性(variance)<br>所以blending就像去掉了variance造成的error。<img src="/2018/04/09/MLTechnique7/3.png">
+</li>
+</ul>
+<hr>
+<h3 id="Linear-Blending"><a href="#Linear-Blending" class="headerlink" title="Linear Blending"></a>Linear Blending</h3><p>Linear blending就是上面提到的「不平均的選」，每一個hypothesis都有自己的係數（選票權重），而linear blending就是要把這些係數算出來。<img src="/2018/04/09/MLTechnique7/4.png"></p>
+<p>怎麼算呢？用regression。<br>將linear blending和feature transform相比，兩者的式子十分的類似。<img src="/2018/04/09/MLTechnique7/5.png"></p>
+<p>上頭有寫到alpha&gt;=0的條件，這是因為選票照理來講應該要是正的。但如果選票為負，代表只要將該hypothesis的結果倒過來即可，因此在實作時常常忽略constraints。</p>
+<h3 id="Any-Blending"><a href="#Any-Blending" class="headerlink" title="Any Blending"></a>Any Blending</h3><p>除了linear地結合hypothesis外，其實可以用任意的方式將hypothesis組起來，叫做any blending，也叫stacking。<img src="/2018/04/09/MLTechnique7/6.png"></p>
+<hr>
+<h3 id="統整一下blending的方式"><a href="#統整一下blending的方式" class="headerlink" title="統整一下blending的方式"></a>統整一下blending的方式</h3><img src="/2018/04/09/MLTechnique7/7.png">
+<p>這邊有提到，blending的g要彼此很不一樣才會有好的效果，而取不一樣的g有以下幾種方法：</p>
+<ul>
+<li>不同models</li>
+<li>不同parameters，例如learning rate</li>
+<li>本身演算法具備的隨機性，例如PLA取隨機錯誤的點</li>
+<li>不同的training set</li>
+</ul>
+<hr>
+<h3 id="Bagging"><a href="#Bagging" class="headerlink" title="Bagging"></a>Bagging</h3><p>剛剛有提到當G是由無限個g合起來的話，可以消除g的歧異性（變異數），使得error變小，但條件是有一個無限大的data set可以取training data。我們並沒有那麼多的data，於是用 <em>bootstrapping</em> 來模擬這樣的情況。</p>
+<p>Bootstrapping簡單來說，就是每一次的data都是在有限的data set中，隨機取出來的，即使資料點重複也沒有關係。</p>
+<p>把用bootstrap得到的g aggregate起來就是bagging啦。</p>
+<p>來看個例子：<img src="/2018/04/09/MLTechnique7/8.png"><br>灰線是baggin得到的g，可以看出來非常的diverse，也因為這樣，投票後的結果才能屈能伸。</p>
+<h3 id="自我總結"><a href="#自我總結" class="headerlink" title="自我總結"></a>自我總結</h3><p>這個章節的概念還蠻好理解的，可以看出演算法眾志成城的樣子。<br>目前只有講到linear blenging還有一些基本的方式，我相信一定還有一些神奇的方法可以把g合起來。就繼續看下去吧。</p>
+</div><div class="tags"><a href="/tags/MLTechnique/">MLTechnique</a><a href="/tags/learning/">learning</a></div><div class="post-nav"><a class="next" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论 「请确保 disqus.com 可以正常加载」</button></div><script>var disqus_shortname = 'goodhat';
+var disqus_identifier = '2018/04/09/MLTechnique7/';
+var disqus_title = 'MLTechnique7';
+var disqus_url = 'http://goodhat.com/2018/04/09/MLTechnique7/';
+$('.btn_click_load').click(function() {
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+  $('.btn_click_load').css('display','none');
+});
+$.ajax({
+  url: 'https://disqus.com/next/config.json',
+  timeout: 3000,
+  type: 'GET',
+  success: (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    $('.btn_click_load').css('display','none');
+  })(),
+  error: function() {
+    $('.btn_click_load').css('display','block');
+  }
+});</script><script id="dsq-count-scr" src="//goodhat.disqus.com/count.js" async></script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://goodhat.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/機器學習技法/">機器學習技法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"><a href="/tags/MLTechnique/" style="font-size: 15px;">MLTechnique</a> <a href="/tags/learning/" style="font-size: 15px;">learning</a> <a href="/tags/雜記/" style="font-size: 15px;">雜記</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/04/09/MLTechnique7/">MLTechnique7</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/29/MLTechnique5/">機器學習技法 Lecture 5</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique3/">機器學習技法 Lecture 3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/MLTechnique1/">機器學習技法 Lecture 1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/first-post/">第一篇文</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> 最近評論</i></div><script type="text/javascript" src="//goodhat.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">Goodhat's Playground.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.css"><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+  });
+</script><script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
