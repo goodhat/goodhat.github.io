@@ -1,0 +1,51 @@
+<!DOCTYPE html><html lang="zh-TW.yml"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description" content="Goodhat's notes"><title>機器學習技法 Lecture 8 | Goodhat's Playground</title><link rel="stylesheet" type="text/css" href="/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/normalize/7.0.0/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/pure-min.css"><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/pure/1.0.0/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script><link rel="Shortcut Icon" type="image/x-icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">機器學習技法 Lecture 8</h1><a id="logo" href="/.">Goodhat's Playground</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/."><i class="fa fa-home"> 首頁</i></a><a href="/archives/"><i class="fa fa-archive"> 所有文章</i></a><a href="/about/"><i class="fa fa-user"> 關於</i></a><a href="/atom.xml"><i class="fa fa-rss"> 訂閱</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">機器學習技法 Lecture 8</h1><div class="post-meta">Apr 25, 2018<span> | </span><span class="category"><a href="/categories/機器學習技法/">機器學習技法</a></span></div><a class="disqus-comment-count" data-disqus-identifier="2018/04/25/MLTechnique8/" href="/2018/04/25/MLTechnique8/#disqus_thread"></a><div class="post-content"><p><em>Adaptive Boosting</em><br>透過在錯誤的資料點上改變權重，即使用很弱的演算法，也能結合成一個很強的model。</p>
+<a id="more"></a>
+<hr>
+<p>課程的一開始，老師並沒有馬上介紹演算法，而是用一個生動的例子來講解分配的過程。</p>
+<p>這個例子是分類圖片是不是一個蘋果。我們先猜想是圓的就是蘋果，會得到以下結果。<img src="/2018/04/25/MLTechnique8/1.png"><br>有一部分錯了，例如番茄是圓的。那麼我們就將這些錯誤的資料放大，正確的縮小，然後再做一次分類。這次我們猜想蘋果是紅的。<img src="/2018/04/25/MLTechnique8/2.png"><br>做完後還是有錯，那就繼續猜。<img src="/2018/04/25/MLTechnique8/3.png"><br>一直持續下去，可以猜想到接下來要介紹的演算法跟放大錯誤資料有關係。</p>
+<hr>
+<h3 id="Bootstrapping-變成-Re-weighting"><a href="#Bootstrapping-變成-Re-weighting" class="headerlink" title="Bootstrapping 變成 Re-weighting"></a>Bootstrapping 變成 Re-weighting</h3><p>還記得上一講提到的bootstrapping是從資料集合裡面，重新sample出一筆資料，資料可以重複沒關係。其實這可以表示成另一種形式，就是在計算資料點的錯誤時，直接給一個權重，這樣就跟boostrapping一樣了。<img src="/2018/04/25/MLTechnique8/4.png"></p>
+<p>如果稍微深入看一下這權重要怎麼實作會發現很簡單。SVM就是alpha的上限改變、logistic regression則是sample的機率改變。<img src="/2018/04/25/MLTechnique8/5.png"></p>
+<p>所以我們每re-weight一次，就會得到一個新的hypothesis。我們當然希望這些hypothesis越不一樣越好（前一講有提到這個想法），要怎麼設定這個權重u，讓他算出來的hypothesis都很不一樣呢？<br>簡單的想法就是，<em>舊的hypothesis使用新的weight會變得很爛</em>，很爛的定義是，用它來選跟隨機選一樣，機率都是1/2。<img src="/2018/04/25/MLTechnique8/6.png"></p>
+<p>再來就是，要怎麼調整weight才會讓上面的想法成立？作法如下：<img src="/2018/04/25/MLTechnique8/7.png"><br>這跟老師一開始講的例子呼應到了，針對錯誤跟正確的資料分別放大縮小，只是這裡明確地告訴我們放大縮小的目標是要讓他們變成1:1。</p>
+<hr>
+<h3 id="歸納整理一下"><a href="#歸納整理一下" class="headerlink" title="歸納整理一下"></a>歸納整理一下</h3><p>為了能夠寫成數學式子，老師創了一個新符號方塊（老師的符號都很特別），其運算如下。通常錯誤率都會小於1/2（畢竟也是train出來的），所以方塊通常會大於一，代表錯誤的資料確實被放大了，就跟一開始的例子一樣。<img src="/2018/04/25/MLTechnique8/8.png"></p>
+<p>那麼第一個weight要取多少？就uniform吧！</p>
+<p>用這個方法最後會有一堆hypothesis，要怎麼結合他們呢？有一個方法可以邊算hypothesis，邊算出它們的weight。其實就是使用他的方塊取log，如此一來，當正確率是1/2（也就是垃圾），weight就會是0；當正確率是1（有他就好啦），weight就是無限大。</p>
+<p>整理起來，整個algorithm如下：<img src="/2018/04/25/MLTechnique8/9.png"></p>
+<hr>
+<h3 id="AdaBoost的理論依據"><a href="#AdaBoost的理論依據" class="headerlink" title="AdaBoost的理論依據"></a>AdaBoost的理論依據</h3><p>回到幾時課程提過的VC bound，以下是adaBoost的bound。這個演算法通常在logN輪後，Ein就能夠等於0，因此N很大時，它的VC bound是會被壓下來的。（其實有點忘記VC bound了…）<img src="/2018/04/25/MLTechnique8/10.png"></p>
+<hr>
+<h3 id="AdaBoost的實例"><a href="#AdaBoost的實例" class="headerlink" title="AdaBoost的實例"></a>AdaBoost的實例</h3><p>AdaBoost只要搭配很弱的演算法也可以變成很強，例子中使用decision stump，非常弱的演算法，基本上只是在某一維度上切一刀。但是透過adaBoost，也能切出很厲害的邊界。下圖是sin波生成的資料點，經過100輪adaBoost，100個decision stump的hypothesis就能切出非常接近的邊界了！）重點是這個演算法計算速度還非常快。<img src="/2018/04/25/MLTechnique8/11.png"></p>
+<p>另外一個實際應用是人臉辨識（感覺只是偵測？），也是用adaBoost + decision stump。除此之外，它還善用了圖片大部分都不是人臉這個事實，在運算過程中，如果一個區塊投票（是人臉的機率）很低的話，就早早淘汰。透過這樣的加速，它成為了第一個real-time的人臉辨識！<img src="/2018/04/25/MLTechnique8/12.png"></p>
+<hr>
+<h3 id="心得"><a href="#心得" class="headerlink" title="心得"></a>心得</h3><p>引述老師用的話，adaBoost就是 <em>三個臭皮匠，勝過一個諸葛亮</em> 。<br>這章節又再一次的讓我見識到演算法的強大，這並不是一個很難理解的方法，但是卻能夠將弱弱的hypothesis結合，變得那麼強，想出這方法的人真的很厲害。</p>
+</div><div class="tags"><a href="/tags/MLTechnique/">MLTechnique</a><a href="/tags/learning/">learning</a></div><div class="post-nav"><a class="next" href="/2018/04/13/微軟面試/">微軟面試</a></div><div id="disqus_thread"><div class="btn_click_load"><button class="disqus_click_btn">阅读评论 「请确保 disqus.com 可以正常加载」</button></div><script>var disqus_shortname = 'goodhat';
+var disqus_identifier = '2018/04/25/MLTechnique8/';
+var disqus_title = '機器學習技法 Lecture 8';
+var disqus_url = 'http://goodhat.com/2018/04/25/MLTechnique8/';
+$('.btn_click_load').click(function() {
+  (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+  $('.btn_click_load').css('display','none');
+});
+$.ajax({
+  url: 'https://disqus.com/next/config.json',
+  timeout: 3000,
+  type: 'GET',
+  success: (function() {
+    var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    $('.btn_click_load').css('display','none');
+  })(),
+  error: function() {
+    $('.btn_click_load').css('display','block');
+  }
+});</script><script id="dsq-count-scr" src="//goodhat.disqus.com/count.js" async></script></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="http://goodhat.com"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> 分類</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/機器學習技法/">機器學習技法</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> 標籤</i></div><div class="tagcloud"><a href="/tags/MLTechnique/" style="font-size: 15px;">MLTechnique</a> <a href="/tags/learning/" style="font-size: 15px;">learning</a> <a href="/tags/雜記/" style="font-size: 15px;">雜記</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> 最近文章</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2018/04/25/MLTechnique8/">機器學習技法 Lecture 8</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/13/微軟面試/">微軟面試</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/04/09/MLTechnique7/">機器學習技法 Lecture 7</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/03/13/MLTechnique6/">機器學習技法 Lecture 6</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/29/MLTechnique5/">機器學習技法 Lecture 5</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/26/MLTechnique4/">機器學習技法 Lecture 4</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique3/">機器學習技法 Lecture 3</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/23/MLTechnique2/">機器學習技法 Lecture 2</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/MLTechnique1/">機器學習技法 Lecture 1</a></li><li class="post-list-item"><a class="post-list-link" href="/2018/01/19/first-post/">第一篇文</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-comment-o"> 最近評論</i></div><script type="text/javascript" src="//goodhat.disqus.com/recent_comments_widget.js?num_items=5&amp;hide_avatars=1&amp;avatar_size=32&amp;excerpt_length=20&amp;hide_mods=1"></script></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> 友站連結</i></div></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2018 <a href="/." rel="nofollow">Goodhat's Playground.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.bootcss.com/fancybox/3.2.5/jquery.fancybox.min.css"><script type="text/x-mathjax-config">MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+  });
+</script><script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script type="text/javascript" src="/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/js/smartresize.js?v=0.0.0"></script></div></body></html>
